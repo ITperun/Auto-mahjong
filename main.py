@@ -1,4 +1,5 @@
 import sys
+import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QGridLayout, QPushButton, QLabel)
@@ -81,7 +82,7 @@ class AlphaJongCompanion(QWidget):
         self.exit_btn = QPushButton("❌")
         self.exit_btn.setFixedSize(28, 28)
         self.exit_btn.setStyleSheet("background-color: transparent; border: none; font-size: 16px;")
-        self.exit_btn.clicked.connect(self.close)
+        self.exit_btn.clicked.connect(self.force_exit)  # 💡 Подключили мгновенное убийство процесса
         
         top_layout.addWidget(self.round_wind_btn)
         top_layout.addWidget(self.my_wind_btn)
@@ -220,6 +221,16 @@ class AlphaJongCompanion(QWidget):
         self.drag_position = None
         event.accept()
 
+    def force_exit(self):
+        """💡 Лисья гильотина: мгновенное убийство процесса по кнопке ❌"""
+        self.close()
+        os._exit(0)
+
+    def closeEvent(self, event):
+        """💡 Срабатывает при закрытии окна через Alt+F4 или панель задач"""
+        event.accept()
+        os._exit(0)
+
     def cycle_round_wind(self):
         self.round_wind_idx = (self.round_wind_idx + 1) % 4
         self.round_wind_btn.setText(f"Раунд: {self.winds_chars[self.round_wind_idx]}")
@@ -328,7 +339,6 @@ class AlphaJongCompanion(QWidget):
             r_wind = self.winds_constants[self.round_wind_idx]
             p_wind = self.winds_constants[self.my_wind_idx]
             
-            # Передаем пустые списки вместо чужих сбросов и мейдов — чистая эффективность руки
             advice = self.analyzer.analyze_hand(
                 self.my_hand, 
                 [],  # all_table_discards
